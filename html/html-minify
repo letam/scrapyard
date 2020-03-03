@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Minify HTML content
+
+
+file="$1"
+if [ "$file" = "" ]; then
+	echo "Error: Argument for file required."
+	exit 1
+fi
+
+if ! grep -q -m 1 -E "<pre[ >]" $file; then
+
+	# Format the file more simply
+	content=$(sed -E "
+		# remove comments
+		s/<!--.*-->//;
+
+		# remove trailing spaces (as well as spaces from lines containing only spaces)
+		s/([^ ^\t]?)[ \t]+$/\1/;
+
+		# remove leading spaces from lines starting with a tag symbol
+		s/^[ \t]+</</;
+
+		# remove redundant leading spaces for lines starting with all other symbols
+		s/^[ \t]+([^ ^\t])/ \1/;
+
+		# remove spaces from lines containing only spaces
+		#s/^[ \t]+$//;
+	" $file)
+
+	# Remove carriage return characters
+	content=$(tr -d "\n" <<< $content)
+	IFS="" # Treat newlines normally
+	echo $content
+
+	exit 0
+fi
+
+# Format the file line by line
+# TODO
+echo Files containing the "<pre" tag are not yet supported.
+exit 1
+while read line; do
+	printf "%s\n" "$line "
+done < $file
+
+# TODO: Make a version in perl
